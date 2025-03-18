@@ -14,3 +14,17 @@ paho-mqtt<2.0.0
 # Imports for Chapter 09 and later
 CoAPthon3
 aiocoap
+
+# abrir el entorno creado
+# Set-ExecutionPolicy Unrestricted -Scope Process
+# .\venv\Scripts\Activate
+# 
+# Error con pytest
+# $env:PYTHONPATH = "C:\Users\alber\OneDrive\Documentos\GitHub\python-components\src\main\python"
+# pytest src/test/python/programmingtheiot/
+# 
+# [System.Environment]::SetEnvironmentVariable("PYTHONPATH", "C:\Users\alber\OneDrive\Documentos\GitHub\python-components\src\main\python", [System.EnvironmentVariableTarget]::User)
+# echo $env:PYTHONPATH
+# pytest src/test/python/programmingtheiot/
+# 
+# 

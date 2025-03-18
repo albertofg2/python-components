@@ -10,20 +10,23 @@
 import programmingtheiot.common.ConfigConst as ConfigConst
 
 class BaseSystemUtilTask():
-	"""
-	Shell implementation representation of class for student implementation.
-	
-	"""
-	
-	def __init__(self, name = ConfigConst.NOT_SET, typeID = ConfigConst.DEFAULT_SENSOR_TYPE):
-		pass
-	
-	def getName(self) -> str:
-		pass
-	
-	def getTypeID(self) -> int:
-		pass
-	
-	def getTelemetryValue(self) -> float:
-		pass
-	
+    """
+    Shell implementation representation of class for student implementation.
+    """
+
+    def __init__(self, name = ConfigConst.NOT_SET, typeID = ConfigConst.DEFAULT_SENSOR_TYPE):
+        # Inicializa las variables de clase
+        self.name = name
+        self.typeID = typeID
+    
+    def getName(self) -> str:
+        # Método para obtener el nombre
+        return self.name
+    
+    def getTypeID(self) -> int:
+        # Método para obtener el tipo
+        return self.typeID
+    
+    def getTelemetryValue(self) -> float:
+        # Método de plantilla que se implementará en las clases derivadas
+        pass

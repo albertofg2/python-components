@@ -11,16 +11,17 @@ import logging
 import psutil
 
 from programmingtheiot.cda.system.BaseSystemUtilTask import BaseSystemUtilTask
+import programmingtheiot.common.ConfigConst as ConfigConst
 
 class SystemMemUtilTask(BaseSystemUtilTask):
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
+    """
+    Collects memory utilization metrics using the psutil library.
+    """
 
-	def __init__(self):
-		pass
-	
-	def getTelemetryValue(self) -> float:
-		pass
-		
+    def __init__(self):
+        # Llamamos al constructor de la clase base
+        super(SystemMemUtilTask, self).__init__(name=ConfigConst.MEM_UTIL_NAME, typeID=ConfigConst.MEM_UTIL_TYPE)
+    
+    def getTelemetryValue(self) -> float:
+        # Usamos psutil para obtener el porcentaje de uso de la memoria
+        return psutil.virtual_memory().percent
