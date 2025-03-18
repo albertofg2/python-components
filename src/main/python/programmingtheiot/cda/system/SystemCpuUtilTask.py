@@ -11,16 +11,17 @@ import logging
 import psutil
 
 from programmingtheiot.cda.system.BaseSystemUtilTask import BaseSystemUtilTask
+import programmingtheiot.common.ConfigConst as ConfigConst
 
 class SystemCpuUtilTask(BaseSystemUtilTask):
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
+    """
+    Collects CPU utilization metrics using the psutil library.
+    """
 
-	def __init__(self):
-		pass
-	
-	def getTelemetryValue(self) -> float:
-		pass
-		
+    def __init__(self):
+        # Llamamos al constructor de la clase base
+        super(SystemCpuUtilTask, self).__init__(name=ConfigConst.CPU_UTIL_NAME, typeID=ConfigConst.CPU_UTIL_TYPE)
+    
+    def getTelemetryValue(self) -> float:
+        # Usamos psutil para obtener el porcentaje de uso de la CPU
+        return psutil.cpu_percent()
