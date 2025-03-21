@@ -8,37 +8,43 @@
 #
 
 import programmingtheiot.common.ConfigConst as ConfigConst
-
 from programmingtheiot.data.BaseIotData import BaseIotData
 
 class SystemPerformanceData(BaseIotData):
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
-	DEFAULT_VAL = 0.0
-	
-	def __init__(self, d = None):
-		super(SystemPerformanceData, self).__init__(name = ConfigConst.SYSTEM_PERF_MSG, typeID = ConfigConst.SYSTEM_PERF_TYPE, d = d)
-		pass
-	
-	def getCpuUtilization(self):
-		pass
-	
-	def getDiskUtilization(self):
-		pass
-	
-	def getMemoryUtilization(self):
-		pass
-	
-	def setCpuUtilization(self, cpuUtil):
-		pass
-	
-	def setDiskUtilization(self, diskUtil):
-		pass
-	
-	def setMemoryUtilization(self, memUtil):
-		pass
-	
-	def _handleUpdateData(self, data):
-		pass
+    """
+    Representa datos del rendimiento del sistema, incluyendo CPU y Memoria.
+    """
+
+    def __init__(self, d=None):
+        super(SystemPerformanceData, self).__init__(
+            name=ConfigConst.SYSTEM_PERF_MSG, 
+            typeID=ConfigConst.SYSTEM_PERF_TYPE, 
+            d=d
+        )
+
+        # Valores iniciales por defecto
+        self.cpuUtil = ConfigConst.DEFAULT_VAL
+        self.memUtil = ConfigConst.DEFAULT_VAL
+
+    def getCpuUtilization(self) -> float:
+        return self.cpuUtil
+
+    def getMemoryUtilization(self) -> float:
+        return self.memUtil
+
+    def setCpuUtilization(self, cpuUtil: float):
+        self.cpuUtil = cpuUtil
+        self.updateTimeStamp()  # actualiza timestamp al cambiar uso CPU
+
+    def setMemoryUtilization(self, memUtil: float):
+        self.memUtil = memUtil
+        self.updateTimeStamp()  # actualiza timestamp al cambiar uso Memoria
+
+    def _handleUpdateData(self, data):
+        if data and isinstance(data, SystemPerformanceData):
+            self.cpuUtil = data.getCpuUtilization()
+            self.memUtil = data.getMemoryUtilization()
+
+    def __str__(self):
+        return (f"SystemPerformanceData [name={self.getName()}, typeID={self.getTypeID()}, "
+                f"cpuUtil={self.cpuUtil}, memUtil={self.memUtil}, timeStamp={self.getTimeStamp()}]")
