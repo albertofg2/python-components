@@ -8,89 +8,67 @@
 #
 
 import logging
-import time  # Asegúrate de que esta importación esté al principio
-from apscheduler.schedulers.background import BackgroundScheduler
+
 import programmingtheiot.common.ConfigConst as ConfigConst
 from programmingtheiot.common.ConfigUtil import ConfigUtil
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
+from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
 from programmingtheiot.cda.system.SystemCpuUtilTask import SystemCpuUtilTask
 from programmingtheiot.cda.system.SystemMemUtilTask import SystemMemUtilTask
-from programmingtheiot.data.SystemPerformanceData import SystemPerformanceData
+from apscheduler.schedulers.background import BackgroundScheduler
 
-# Configuración básica del logging para ver los mensajes
-logging.basicConfig(level=logging.INFO)  # Esto permitirá que se muestren los mensajes de nivel INFO
-
-class SystemPerformanceManager(object):
-    """
-    Shell representation of class for student implementation.
-    """
-
+class SystemPerformanceManager():
+    
     def __init__(self):
-        logging.info("Initializing SystemPerformanceManager...")
+        self.configUtil = ConfigUtil()
+        self.pollRate = self.configUtil.getInteger(
+            ConfigConst.CONSTRAINED_DEVICE,
+            ConfigConst.POLL_CYCLES_KEY,
+            ConfigConst.DEFAULT_POLL_CYCLES)
 
-        configUtil = ConfigUtil()
+        self.locationID = self.configUtil.getProperty(
+            ConfigConst.CONSTRAINED_DEVICE,
+            ConfigConst.DEVICE_LOCATION_ID_KEY,
+            ConfigConst.NOT_SET)
 
-        self.pollRate = configUtil.getInteger(
-            section=ConfigConst.CONSTRAINED_DEVICE,
-            key=ConfigConst.POLL_CYCLES_KEY,
-            defaultVal=ConfigConst.DEFAULT_POLL_CYCLES
-        )
-
-        self.locationID = configUtil.getProperty(
-            section=ConfigConst.CONSTRAINED_DEVICE,
-            key=ConfigConst.DEVICE_LOCATION_ID_KEY,
-            defaultVal=ConfigConst.NOT_SET
-        )
-
-        if self.pollRate <= 0:
-            self.pollRate = ConfigConst.DEFAULT_POLL_CYCLES
-
-        self.dataMsgListener = None
-        self.scheduler = BackgroundScheduler()
-
-        # Instanciar las tareas de CPU y Memoria
         self.cpuUtilTask = SystemCpuUtilTask()
         self.memUtilTask = SystemMemUtilTask()
+        self.dataMsgListener = None
 
-        logging.info("Created instance of ConfigUtil: %s", str(configUtil))
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.add_job(self.handleTelemetry, 'interval', seconds=self.pollRate)
 
     def handleTelemetry(self):
-        # Obtener valores de utilización de CPU y memoria
-        cpuUtil = self.cpuUtilTask.getTelemetryValue()
-        memUtil = self.memUtilTask.getTelemetryValue()
+        self.cpuUtilPct = self.cpuUtilTask.getTelemetryValue()
+        self.memUtilPct = self.memUtilTask.getTelemetryValue()
 
-        # Crear el objeto de datos de rendimiento del sistema
-        perfData = SystemPerformanceData(cpuUtil, memUtil)
-        logging.info(f"SystemPerformanceManager - CPU: {cpuUtil:.2f}%, Memory: {memUtil:.2f}%")
+        logging.debug('CPU utilization is %s percent, and memory utilization is %s percent.',
+                      str(self.cpuUtilPct), str(self.memUtilPct))
 
-        # Enviar datos al listener si está configurado
+        sysPerfData = SystemPerformanceData()
+        sysPerfData.setLocationID(self.locationID)
+        sysPerfData.setCpuUtilization(self.cpuUtilPct)
+        sysPerfData.setMemoryUtilization(self.memUtilPct)
+
         if self.dataMsgListener:
-            self.dataMsgListener.handleSensorMessage(perfData)
+            self.dataMsgListener.handleSystemPerformanceMessage(data=sysPerfData)
 
     def setDataMessageListener(self, listener: IDataMessageListener) -> bool:
-        self.dataMsgListener = listener
-        return True
+        if listener:
+            self.dataMsgListener = listener
+            return True
+        return False
 
     def startManager(self):
-        logging.info("Starting SystemPerformanceManager.")
-        # Agregar el trabajo al planificador para ejecutarlo a intervalos
-        self.scheduler.add_job(self.handleTelemetry, 'interval', seconds=self.pollRate)
-        self.scheduler.start()
+        if not self.scheduler.running:
+            self.scheduler.start()
+            logging.info("SystemPerformanceManager scheduler started.")
+        else:
+            logging.info("Scheduler already running.")
 
     def stopManager(self):
-        logging.info("Stopping SystemPerformanceManager.")
-        self.scheduler.shutdown()
-
-# Agregar esta parte para que no se cierre inmediatamente
-if __name__ == '__main__':
-    logging.info("Starting SystemPerformanceManager script...")  # Log al inicio
-    perfMgr = SystemPerformanceManager()
-    perfMgr.startManager()
-
-    # Esperar 10 segundos antes de parar
-    logging.info("Waiting for 10 seconds before stopping...")
-    time.sleep(10)
-
-    logging.info("Stopping SystemPerformanceManager...")
-    perfMgr.stopManager()
-    logging.info("SystemPerformanceManager stopped.")
+        if self.scheduler.running:
+            self.scheduler.shutdown()
+            logging.info("SystemPerformanceManager scheduler stopped.")
+        else:
+            logging.info("Scheduler already stopped.")
