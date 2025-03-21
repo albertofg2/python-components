@@ -8,15 +8,18 @@
 #
 
 import logging
+from importlib import import_module
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import programmingtheiot.common.ConfigConst as ConfigConst
 from programmingtheiot.common.ConfigUtil import ConfigUtil
 from programmingtheiot.common.IDataMessageListener import IDataMessageListener
+
 from programmingtheiot.cda.sim.SensorDataGenerator import SensorDataGenerator
 from programmingtheiot.cda.sim.HumiditySensorSimTask import HumiditySensorSimTask
-from programmingtheiot.cda.sim.PressureSensorSimTask import PressureSensorSimTask
 from programmingtheiot.cda.sim.TemperatureSensorSimTask import TemperatureSensorSimTask
+from programmingtheiot.cda.sim.PressureSensorSimTask import PressureSensorSimTask
 
 class SensorAdapterManager(object):
 
@@ -30,7 +33,8 @@ class SensorAdapterManager(object):
 
         self.useEmulator = self.configUtil.getBoolean(
             section=ConfigConst.CONSTRAINED_DEVICE,
-            key=ConfigConst.ENABLE_EMULATOR_KEY)
+            key=ConfigConst.ENABLE_EMULATOR_KEY,
+            defaultVal=True)
 
         self.locationID = self.configUtil.getProperty(
             section=ConfigConst.CONSTRAINED_DEVICE,
@@ -58,7 +62,6 @@ class SensorAdapterManager(object):
             section=ConfigConst.CONSTRAINED_DEVICE,
             key=ConfigConst.HUMIDITY_SIM_FLOOR_KEY,
             defaultVal=SensorDataGenerator.LOW_NORMAL_ENV_HUMIDITY)
-
         humidityCeiling = self.configUtil.getFloat(
             section=ConfigConst.CONSTRAINED_DEVICE,
             key=ConfigConst.HUMIDITY_SIM_CEILING_KEY,
@@ -68,7 +71,6 @@ class SensorAdapterManager(object):
             section=ConfigConst.CONSTRAINED_DEVICE,
             key=ConfigConst.PRESSURE_SIM_FLOOR_KEY,
             defaultVal=SensorDataGenerator.LOW_NORMAL_ENV_PRESSURE)
-
         pressureCeiling = self.configUtil.getFloat(
             section=ConfigConst.CONSTRAINED_DEVICE,
             key=ConfigConst.PRESSURE_SIM_CEILING_KEY,
@@ -78,7 +80,6 @@ class SensorAdapterManager(object):
             section=ConfigConst.CONSTRAINED_DEVICE,
             key=ConfigConst.TEMP_SIM_FLOOR_KEY,
             defaultVal=SensorDataGenerator.LOW_NORMAL_INDOOR_TEMP)
-
         tempCeiling = self.configUtil.getFloat(
             section=ConfigConst.CONSTRAINED_DEVICE,
             key=ConfigConst.TEMP_SIM_CEILING_KEY,
@@ -97,6 +98,19 @@ class SensorAdapterManager(object):
             self.humidityAdapter = HumiditySensorSimTask(dataSet=humidityData)
             self.pressureAdapter = PressureSensorSimTask(dataSet=pressureData)
             self.tempAdapter = TemperatureSensorSimTask(dataSet=tempData)
+
+        else:
+            heModule = import_module('programmingtheiot.cda.emulated.HumiditySensorEmulatorTask', 'HumiditySensorEmulatorTask')
+            heClazz = getattr(heModule, 'HumiditySensorEmulatorTask')
+            self.humidityAdapter = heClazz()
+
+            peModule = import_module('programmingtheiot.cda.emulated.PressureSensorEmulatorTask', 'PressureSensorEmulatorTask')
+            peClazz = getattr(peModule, 'PressureSensorEmulatorTask')
+            self.pressureAdapter = peClazz()
+
+            teModule = import_module('programmingtheiot.cda.emulated.TemperatureSensorEmulatorTask', 'TemperatureSensorEmulatorTask')
+            teClazz = getattr(teModule, 'TemperatureSensorEmulatorTask')
+            self.tempAdapter = teClazz()
 
     def setDataMessageListener(self, listener: IDataMessageListener):
         if listener:
