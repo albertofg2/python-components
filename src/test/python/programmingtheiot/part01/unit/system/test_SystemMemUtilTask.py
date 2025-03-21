@@ -5,7 +5,7 @@
 # found in the LICENSE file at the top level of this repository.
 # 
 # Copyright (c) 2020 by Andrew D. King
-# 
+# r
 
 import logging
 import unittest
