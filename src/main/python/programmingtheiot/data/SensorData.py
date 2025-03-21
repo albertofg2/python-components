@@ -8,32 +8,30 @@
 #
 
 import programmingtheiot.common.ConfigConst as ConfigConst
-
 from programmingtheiot.data.BaseIotData import BaseIotData
 
 class SensorData(BaseIotData):
-	"""
-	Shell representation of class for student implementation.
-	
-	"""
-		
-	def __init__(self, typeID: int = ConfigConst.DEFAULT_SENSOR_TYPE, name = ConfigConst.NOT_SET, d = None):
-		super(SensorData, self).__init__(name = name, typeID = typeID, d = d)
-		pass
-	
-	def getSensorType(self) -> int:
-		"""
-		Returns the sensor type to the caller.
-		
-		@return int
-		"""
-		return self.sensorType
-	
-	def getValue(self) -> float:
-		pass
-	
-	def setValue(self, newVal: float):
-		pass
-		
-	def _handleUpdateData(self, data):
-		pass
+    """
+    Representa datos simples de un sensor con soporte para valores flotantes.
+    """
+
+    def __init__(self, typeID: int = ConfigConst.DEFAULT_SENSOR_TYPE, name=ConfigConst.NOT_SET, d=None):
+        super(SensorData, self).__init__(name=name, typeID=typeID, d=d)
+        
+        # Inicializamos con valor por defecto
+        self.value = ConfigConst.DEFAULT_VAL
+
+    def getValue(self) -> float:
+        return self.value
+
+    def setValue(self, newVal: float):
+        self.value = newVal
+        self.updateTimeStamp()  # actualiza timestamp al cambiar el valor
+
+    def _handleUpdateData(self, data):
+        if data and isinstance(data, SensorData):
+            self.value = data.getValue()
+
+    def __str__(self):
+        return (f"SensorData [name={self.getName()}, typeID={self.getTypeID()}, value={self.value}, "
+                f"timeStamp={self.getTimeStamp()}]")
